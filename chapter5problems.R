@@ -101,3 +101,47 @@ shade(PI_group, groupseq)
 # Now both area important.
 cor(foxes)
 # area and groupsize were positively correlated
+
+
+# 5H3
+mh3a <- quap(
+  alist(
+    weight ~ dnorm(mu, sigma),
+    mu ~ a + bf*avgfood + bg*groupsize,
+    a ~ dnorm(4.5, 2),
+    bf ~ dnorm(0, 15),
+    bg ~ dnorm(0, 5),
+    sigma ~ dunif(0,5)
+  ), data=foxes
+)
+precis(mh3a)
+plot(precis(mh3b))
+
+
+mh3b <- quap(
+  alist(
+    weight ~ dnorm(mu, sigma),
+    mu ~ a + ba*area + bf*avgfood + bg*groupsize,
+    a ~ dnorm(4.5, 2),
+    ba ~ dnorm(0, 5),
+    bf ~ dnorm(0, 15),
+    bg ~ dnorm(0, 5),
+    sigma ~ dunif(0,5)
+  ), data=foxes
+)
+precis(mh3b)
+plot(precis(mh3b))
+
+# Adding in area makes the interval for avgfood much larger.
+cor(foxes)
+# avgfood and area are highly correlated
+
+postsamp <- extract.samples(mh3b)
+with(postsamp, plot(bf, ba, xlab="avgfood coef",
+                    ylab="area coef", col=col.alpha(rangi2,.1)))
+with(postsamp, cor(ba, bf))
+# The coefficients have negative correlation of -.56.
+# Including either as an input adds about the same information,
+# we only need to include one in the model.
+
+
