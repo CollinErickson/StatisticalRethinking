@@ -136,3 +136,82 @@ shade(mu.Africa.wo_ci, rugged.seq)
 
 # There's not a clear interaction when looking at just the data.
 # The posterior lines still have an interaction, but not as much.
+
+# c
+
+m8h3c_mod1 <- quap(alist(
+  log_gdp_std ~ dnorm(mu, sigma),
+  mu <- a + br*rugged_std,
+  a ~ dnorm(1,.3),
+  ba ~ dnorm(0, .3),
+  br ~ dnorm(0,.3),
+  bar ~ dnorm(0,.3),
+  sigma ~ dexp(1)
+), data=dd[dd$country!="Seychelles", ] )
+
+m8h3c_mod2 <- quap(alist(
+  log_gdp_std ~ dnorm(mu, sigma),
+  mu <- a + ba*cont_africa + br*rugged_std,
+  a ~ dnorm(1,.3),
+  ba ~ dnorm(0, .3),
+  br ~ dnorm(0,.3),
+  bar ~ dnorm(0,.3),
+  sigma ~ dexp(1)
+), data=dd[dd$country!="Seychelles", ] )
+
+m8h3c_mod3 <- quap(alist(
+  log_gdp_std ~ dnorm(mu, sigma),
+  mu <- a + ba*cont_africa + br*rugged_std + bar*cont_africa*rugged_std,
+  a ~ dnorm(1,.3),
+  ba ~ dnorm(0, .3),
+  br ~ dnorm(0,.3),
+  bar ~ dnorm(0,.3),
+  sigma ~ dexp(1)
+), data=dd[dd$country!="Seychelles", ] )
+
+compare(m8h3c_mod1, m8h3c_mod2, m8h3c_mod3)
+
+# Adding the interaction reduced the WAIC
+
+# 8H4
+data(nettle)
+d <- nettle
+str(nettle)
+d$lang.per.cap <- d$num.lang / d$k.pop
+d$log_lang.per.cap <- log(d$lang.per.cap)
+d$log_area <- log(d$area)
+precis(d)
+
+m8h4 <- quap(
+  alist(
+    log_lang.per.cap ~ dnorm(mu, sigma),
+    mu ~ a + barea * log_area + bmgs*mean.growing.season + bsgs*sd.growing.season,
+    a ~ dnorm(-5, 2),
+    barea ~ dnorm(0,1),
+    bmgs ~ dnorm(0,1),
+    bsgs ~ dnorm(0,1),
+    sigma ~ dexp(1)
+  ), data=d
+)
+precis(m8h4)
+
+# mean growing season has a positive effect on log_lang.per.cap
+# sd growing season has a negative effect, but is near zero
+
+# c
+m8h4c <- quap(
+  alist(
+    log_lang.per.cap ~ dnorm(mu, sigma),
+    mu ~ a + barea * log_area + bmgs*mean.growing.season + bsgs*sd.growing.season + bint*mean.growing.season*sd.growing.season,
+    a ~ dnorm(-5, 2),
+    barea ~ dnorm(0,1),
+    bmgs ~ dnorm(0,1),
+    bsgs ~ dnorm(0,1),
+    bint ~ dnorm(0,1),
+    sigma ~ dexp(1)
+  ), data=d
+)
+precis(m8h4c)
+# There is a slight interaction.
+
+# I should have standardized the data. It's hard to set priors this way.
