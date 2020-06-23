@@ -137,3 +137,72 @@ precis(m10h3cstan)
 pairs(m10h3cstan)
 compare(m10h3stan, m10h3cstan)
 
+# 10H4
+data(salamanders)
+d <- salamanders
+str(d)
+plot(table(d$SALAMAN))
+
+# a
+# quap first
+sal_quap <- quap(alist(
+  SALAMAN ~ dpois(lambda),
+  log(lambda) ~ a + b*PCTCOVER,
+  a ~ dnorm(0,10),
+  b ~ dnorm(0,5)
+), data=d)
+precis(sal_quap)
+pairs(sal_quap)
+
+# Now stan
+sal_stan <- map2stan(sal_quap)
+precis(sal_stan)
+pairs(sal_stan)
+# Approximate is pretty good but both coefficients are a bit skewed.
+
+postcheck(sal_stan)
+
+# Plot intervals
+precis(d)
+pctcov.seq <- seq(0,100,l=101)
+df.seq <- data.frame(PCTCOVER=pctcov.seq)
+lam.samp <- link(sal_quap, n=1e4, data=df.seq)
+lam.avg <- colMeans(lam.samp)
+lam.PI <- apply(lam.samp, 2, PI, p=.89)
+count.samp <- sim(sal_quap, data=df.seq)
+count.PI <- apply(count.samp, 2, PI, p=.89)
+
+with(d, plot(PCTCOVER, SALAMAN))
+shade(count.PI, pctcov.seq, col=3)
+shade(lam.PI, pctcov.seq)
+lines(pctcov.seq, lam.avg)
+with(d, points(PCTCOVER, SALAMAN))
+# Doesn't look very good. Most of pctcover are in cluster near top,
+# with wide variety in outcome.
+# Should add more covariates.
+
+# b
+# normalize FORESTAGE
+d$FORESTAGE_norm <- with(d, (FORESTAGE - mean(FORESTAGE))/sd(FORESTAGE))
+sal_quap2 <- quap(alist(
+  SALAMAN ~ dpois(lambda),
+  log(lambda) ~ a + bc*PCTCOVER + bf*FORESTAGE_norm,
+  a ~ dnorm(0,10),
+  bc ~ dnorm(0,5),
+  bf ~ dnorm(0,5)
+), data=d)
+precis(sal_quap2)
+pairs(sal_quap2)
+vcov(sal_quap2)
+# Not much correlation between bf and either a or bc,
+# but a and bc are still correlated.
+
+# Try stan for this too
+sal_stan2 <- map2stan(sal_quap2)
+precis(sal_stan2)
+pairs(sal_stan2)
+# Close enough to normal. a and bc are skew, bf is more triangle.
+
+compare(sal_stan, sal_stan2)
+
+
