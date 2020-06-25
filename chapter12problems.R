@@ -66,3 +66,56 @@ m1 <- quap(alist(
   a ~ dnorm(0, 10)
 ), data=d)
 precis(m1)
+
+m2 <- quap(alist(
+  deaths ~ dpois(lambda),
+  log(lambda) ~ a + bf*femininity,
+  a ~ dnorm(0, 10),
+  bf ~ dnorm(0,10)
+), data=d)
+precis(m2)
+plot(precis(m2))
+# effect is .07, so exp(.07)
+exp(.07)
+postcheck(m2)
+
+compare(m1, m2)
+
+femseq <- seq(1,11, l=51)
+l1 <- link(m1, data=data.frame(femininity=femseq))
+l1.mean <- colMeans(l1)
+l1.PI <- apply(l1, 2, PI, p=.89)
+l2 <- link(m2, data=data.frame(femininity=femseq))
+l2.mean <- colMeans(l2)
+l2.PI <- apply(l2, 2, PI, p=.89)
+with(d, plot(femininity, deaths, pch=19, col=3))
+points(femseq, l1.mean)
+points(femseq, l2.mean, col=2)
+shade(l1.PI, femseq)
+shade(l2.PI, femseq)
+# Not a very good fit
+
+
+# 12H2
+mgp <- quap(alist(
+  deaths ~ dgampois(lambda, theta),
+  log(lambda) ~ a + bf*femininity,
+  a ~ dnorm(0, 10),
+  bf ~ dnorm(0,10),
+  theta ~ dexp(1)
+), data=d)
+precis(mgp)
+# bf now overlaps 0.
+
+lgp <- link(mgp, data=data.frame(femininity=femseq))
+lgp.mean <- colMeans(lgp)
+lgp.PI <- apply(lgp, 2, PI, p=.89)
+
+with(d, plot(femininity, deaths, pch=19, col=3))
+points(femseq, l1.mean)
+points(femseq, l2.mean, col=2)
+shade(l1.PI, femseq)
+shade(l2.PI, femseq)
+points(femseq, lgp.mean, col=3)
+shade(lgp.PI, femseq)
+# It has larger uncertainty.
