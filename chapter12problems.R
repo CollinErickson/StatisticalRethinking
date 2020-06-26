@@ -97,6 +97,7 @@ shade(l2.PI, femseq)
 
 
 # 12H2
+# gamma poisson
 mgp <- quap(alist(
   deaths ~ dgampois(lambda, theta),
   log(lambda) ~ a + bf*femininity,
@@ -119,3 +120,123 @@ shade(l2.PI, femseq)
 points(femseq, lgp.mean, col=3)
 shade(lgp.PI, femseq)
 # It has larger uncertainty.
+
+# 12H3
+d$damage_norm_std <- standardize(d$damage_norm)
+d$min_pressure_std <- standardize(d$min_pressure)
+d$femininity_std <- standardize(d$femininity)
+mgp2 <- quap(alist(
+  deaths ~ dgampois(lambda, theta),
+  log(lambda) ~ a + bf*femininity_std + bd*damage_norm_std + bp*min_pressure_std,
+  a ~ dnorm(0, 10),
+  c(bf, bd, bp) ~ dnorm(0,2),
+  theta ~ dexp(1)
+), data=d)
+precis(mgp2)
+
+# Add interaction
+mgp3 <- quap(alist(
+  deaths ~ dgampois(lambda, theta),
+  log(lambda) ~ a + bf*femininity_std + bd*damage_norm_std + bp*min_pressure_std + bfd*femininity_std*damage_norm_std,
+  a ~ dnorm(0, 10),
+  c(bf, bd, bp, bfd) ~ dnorm(0,2),
+  theta ~ dexp(1)
+), data=d)
+precis(mgp3)
+
+compare(mgp, mgp2, mgp3)
+plot(compare(mgp, mgp2, mgp3))
+# adding interaction did almost nothing
+
+# 12H4
+d$log_damage_norm <- log(d$damage_norm)
+mgp4 <- quap(alist(
+  deaths ~ dgampois(lambda, theta),
+  log(lambda) ~ a + bf*femininity_std + bd*log_damage_norm + bp*min_pressure_std,
+  a ~ dnorm(0, 10),
+  c(bf, bd, bp) ~ dnorm(0,2),
+  theta ~ dexp(1)
+), data=d)
+precis(mgp4)
+
+compare(mgp, mgp2, mgp3, mgp4)
+# Helped a little bit
+
+
+# 12H4
+data(Trolley)
+d <- Trolley
+d %>% str
+
+# from chapter
+m1 <- quap(alist(
+  response ~ dordlogit(phi, c(a1,a2,a3,a4,a5,a6)),
+  phi <- bA*action + bI*intention + bC*contact + bAI*action*intention + bCI*contact*intention,
+  c(bA, bI,bC, bAI, bCI) ~ dnorm(0,10),
+  c(a1, a2, a3, a4,a5,a6) ~ dnorm(0,10)
+), data=d, start=list(a1=-1.9,a2=-1.2,a3=-.7,a4=.2,a5=.9,a6=1.8))
+precis(m1)
+plot(precis(m1))
+pairs(m1)
+
+# Add gender and gender*contact
+m2 <- quap(alist(
+  response ~ dordlogit(phi, c(a1,a2,a3,a4,a5,a6)),
+  phi <- bA*action + bI*intention + bC*contact + bAI*action*intention + bCI*contact*intention +
+    bF*(1-male) + bFC*(1-male)*contact,
+  c(bA, bI,bC, bAI, bCI, bF, bFC) ~ dnorm(0,10),
+  c(a1, a2, a3, a4,a5,a6) ~ dnorm(0,10)
+), data=d, start=list(a1=-1.9,a2=-1.2,a3=-.7,a4=.2,a5=.9,a6=1.8))
+precis(m2)
+plot(precis(m2))
+pairs(m2)
+compare(m1, m2)
+plot(compare(m1, m2))
+# gender has nonzero effect, but the interaction is near zero
+
+# 12H6
+data(Fish)
+d <- Fish
+d %>% str
+d %>% precis
+
+# Only use hours
+f1 <- quap(alist(
+  fish_caught ~ dzipois(p, lambda),
+  logit(p) <- ap,
+  log(lambda) <- log(hours) + al,
+  ap ~ dnorm(0,10),
+  al ~ dnorm(0,10)
+), data=d)
+precis(f1)
+plot(precis(f1))
+postcheck(f1)
+logistic(-.74)
+# 32% didn't fish
+exp(-.14)
+# avg fish caught per hour when fishing is .87
+
+# Add in other factors
+f2 <- quap(alist(
+  fish_caught ~ dzipois(p, lambda),
+  logit(p) <- ap + ac*camper + app*persons + ach*child,
+  log(lambda) <- log(hours) + al + bl*livebait + bc*camper + bpp*persons + bch*child,
+  ap ~ dnorm(0,10),
+  al ~ dnorm(0,10),
+  c(ac, app, ach) ~ dnorm(0,2),
+  c(bl, bc, bpp, bch) ~ dnorm(0,2)
+), data=d)
+precis(f2)
+plot(precis(f2))
+compare(f1, f2)
+
+# New model is much better
+
+
+
+
+# 12H7
+
+# 12H8
+
+
