@@ -134,3 +134,50 @@ compare(mbase, msize, mpred, msizepred, msizepredint)
 # None are big improvements over just base. Best is just pred.
 
 
+# 13M3
+mbase <- ulam(alist(
+  S ~ dbinom(N, p),
+  logit(p) <- a[tank],
+  a[tank] ~ dnorm(a_bar, sigma),
+  a_bar ~ dnorm(0,1),
+  sigma ~ dexp(1)
+), data=dat1, chains=4, log_lik=T)
+precis(mbase)
+
+mcau <- ulam(alist(
+  S ~ dbinom(N, p),
+  logit(p) <- a[tank],
+  a[tank] ~ dcauchy(a_bar, sigma),
+  a_bar ~ dnorm(0,1),
+  sigma ~ dexp(1)
+), data=dat1, chains=4, log_lik=T)
+precis(mcau)
+
+compare(mbase, mcau)
+
+# plot(coeftab(mbase, mcau))
+
+sampnorm <- extract.samples(mbase)
+sampcau <- extract.samples(mcau)
+
+anorm <- apply(sampnorm$a, 2, mean)
+acau  <- apply(sampcau$a, 2, mean)
+
+plot(anorm, acau, xlab='normal', ylab='cauchy')
+
+
+# 13M4
+mstu <- ulam(alist(
+  S ~ dbinom(N, p),
+  logit(p) <- a[tank],
+  a[tank] ~ dstudent(2, a_bar, sigma),
+  a_bar ~ dnorm(0,1),
+  sigma ~ dexp(1)
+), data=dat1, chains=4, log_lik=T)
+precis(mstu)
+
+compare(mbase, mcau, mstu)
+
+
+
+
