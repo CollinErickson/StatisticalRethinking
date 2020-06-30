@@ -283,3 +283,40 @@ m3 <- ulam(
 precis(m3)
 
 compare(m1, m3)
+# Can't get WAIC even though I used log_lik???
+
+# 14M3
+
+# 14M4
+
+# 14M5
+
+
+# 14H1
+data("bangladesh")
+d <- bangladesh
+d$district_id <- as.integer(as.factor(d$district))
+d$use_contraception <- d$use.contraception
+d$age_centered <- d$age.centered
+
+m1 <- ulam(alist(
+  use_contraception ~ dbinom(1, p),
+  logit(p) <- a_district[district_id],
+  a_district[district_id] ~ dnorm(a, sigma),
+  a ~ dnorm(0, 10),
+  sigma ~ dexp(1)
+), data=d %>% dplyr::select(use_contraception, age_centered, district_id))
+precis(m1)
+# plot(precis(m1))
+
+m2 <- ulam(alist(
+  use_contraception ~ dbinom(1, p),
+  logit(p) <- a_district[district_id] + b_district[district_id]*urban,
+  c(a_district, b_district)[district_id] ~ multi_normal(c(a, b_urban), Rho, sigma),
+  a ~ dnorm(0, 10),
+  b_urban ~ dnorm(0, 1),
+  sigma ~ dexp(1),
+  Rho ~ dlkjcorr(2)
+), data=d %>% dplyr::select(use_contraception, age_centered, district_id, urban), log_lik = T)
+precis(m2)
+
