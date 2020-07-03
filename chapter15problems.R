@@ -63,3 +63,64 @@ m15.5_beta <- ulam(
     sigma ~ dexp( 1 )
   ) , data=dat_list , chains=4 , cores=1, start = list(B=.5))
 precis(m15.5_beta, depth=2)
+# Can't get proper initialization for dbeta.
+# Why would it try anything outside 0-1?
+
+# 15M3
+data(WaffleDivorce)
+d <- WaffleDivorce
+# points
+plot( d$Divorce ~ d$MedianAgeMarriage , ylim=c(4,15) ,
+      xlab="Median age marriage" , ylab="Divorce rate" )
+# standard errors
+for ( i in 1:nrow(d) ) {
+  ci <- d$Divorce[i] + c(-1,1)*d$Divorce.SE[i]
+  x <- d$MedianAgeMarriage[i]
+  lines( c(x,x) , ci )
+}
+dlist <- list(
+  D_obs = standardize( d$Divorce ),
+  D_sd = d$Divorce.SE / sd( d$Divorce ),
+  M = standardize( d$Marriage ),
+  A = standardize( d$MedianAgeMarriage ),
+  N = nrow(d)
+)
+m15.1 <- ulam(
+  alist(
+    D_obs ~ dnorm( D_true , D_sd ),
+    vector[N]:D_true ~ dnorm( mu , sigma ),
+    mu <- a + bA*A + bM*M,
+    a ~ dnorm(0,0.2),
+    bA ~ dnorm(0,0.5),
+    bM ~ dnorm(0,0.5),
+    sigma ~ dexp(1)
+  ) , data=dlist , chains=4 , cores=4 )
+precis( m15.1 , depth=2 )
+
+
+# D_sd is now 2x
+dlistb <- list(
+  D_obs = standardize( d$Divorce ),
+  D_sd = 2*d$Divorce.SE / sd( d$Divorce ),
+  M = standardize( d$Marriage ),
+  A = standardize( d$MedianAgeMarriage ),
+  N = nrow(d)
+)
+m15.1b <- ulam(
+  alist(
+    D_obs ~ dnorm( D_true , D_sd ),
+    vector[N]:D_true ~ dnorm( mu , sigma ),
+    mu <- a + bA*A + bM*M,
+    a ~ dnorm(0,0.2),
+    bA ~ dnorm(0,0.5),
+    bM ~ dnorm(0,0.5),
+    sigma ~ dexp(1)
+  ) , data=dlistb, chains=4 , cores=4 )
+precis( m15.1b , depth=2 )
+
+plot(m15.1@coef, m15.1b@coef); abline(a=0,b=1,col=2)
+# Parameter mean estimates are about the same.
+plot(m15.1@vcov, m15.1b@vcov); abline(a=0,b=1,col=2)
+# Variance estimates are generally smaller.
+
+
