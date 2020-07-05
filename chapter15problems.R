@@ -124,3 +124,47 @@ plot(m15.1@vcov, m15.1b@vcov); abline(a=0,b=1,col=2)
 # Variance estimates are generally smaller.
 
 
+# 15M4
+# Making up X -> Y -> Z
+n <- 1e3
+X <- rnorm(n)
+Y <- 4 + 3*X + rnorm(n)
+Z <- -5 + 2*Y + rnorm(n)
+d <- data.frame(X, Y, Z)
+pairs(d)
+m1 <- quap(alist(
+  Y ~ dnorm(a + b1*X + b2*Z, sigma),
+  c(a,b1,b2) ~ dnorm(0,5),
+  sigma ~ dexp(1)
+), data=d)
+precis(m1)
+
+# It looks fine when just using X
+m2 <- quap(alist(
+  Y ~ dnorm(a + b1*X, sigma),
+  c(a,b1) ~ dnorm(0,5),
+  sigma ~ dexp(1)
+), data=d)
+precis(m2)
+
+compare(m1, m2)
+
+# 15M5
+
+# 15M6
+
+# 15H1
+data(elephants)
+d <- elephants
+str(d)
+plot(d)
+
+m1 <- ulam(alist(
+  MATINGS ~ dpois(lambda),
+  log(lambda) <- a + b*AGE,
+  a ~ dnorm(0,10),
+  b ~ dnorm(0,1)
+), data=d)
+precis(m1)
+# plot(m1)
+traceplot(m1)
