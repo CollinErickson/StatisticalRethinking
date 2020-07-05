@@ -179,5 +179,46 @@ precis(mstu)
 compare(mbase, mcau, mstu)
 
 
+# 13M5
+
+# 13M6
+
+# 13H1
+data("bangladesh")
+d <- bangladesh
+str(d)
+sort(unique(d$district))
+d$district_id <- as.integer(as.factor(d$district))
+sort(unique(d$district_id))
+precis(d)
+d$use_contraception <- d$use.contraception
+
+# fixed model
+mfix <- ulam(alist(
+  use_contraception ~ dbinom(1, p),
+  logit(p) <- a_district[district_id],
+  a_district[district_id] ~ dnorm(0,5),
+  sigma ~ dexp(1)
+), data=d %>% select(use_contraception, district_id))
+precis(mfix, depth=2)
+
+mml <- ulam(alist(
+  use_contraception ~ dbinom(1, p),
+  logit(p) <- a_district[district_id],
+  a_district[district_id] ~ dnorm(a,5),
+  a ~ dnorm(0,5),
+  sigma ~ dexp(1)
+), data=d %>% select(use_contraception, district_id))
+precis(mml, depth=2)
+compare(mfix, mml)
+
+
+# 13H2
+
+# 13H3
+
+# 13H4
+
+
 
 
