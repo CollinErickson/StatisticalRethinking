@@ -168,3 +168,18 @@ m1 <- ulam(alist(
 precis(m1)
 # plot(m1)
 traceplot(m1)
+
+dl <- as.list(d)
+dl[['N']] <- length(d$AGE)
+m2 <- ulam(alist(
+  MATINGS ~ dpois(lambda),
+  log(lambda) <- a + b*AGE_est[i],
+  AGE ~ dnorm(AGE_est, 5),
+  vector[N]:AGE_est ~ dnorm(35, 10),
+  a ~ dnorm(0,10),
+  b ~ dnorm(0,1)
+), data=dl, start=list(AGE_est=d$AGE))
+precis(m2)
+
+
+
