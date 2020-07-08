@@ -181,5 +181,25 @@ m2 <- ulam(alist(
 ), data=dl, start=list(AGE_est=d$AGE))
 precis(m2)
 
+# 15H2
+# Same as above, but with bigger std error
+m3 <- ulam(alist(
+  MATINGS ~ dpois(lambda),
+  log(lambda) <- a + b*AGE_est[i],
+  AGE ~ dnorm(AGE_est, 10),
+  vector[N]:AGE_est ~ dnorm(35, 10),
+  a ~ dnorm(0,10),
+  b ~ dnorm(0,1)
+), data=dl, start=list(AGE_est=d$AGE))
+precis(m3)
 
+m4 <- ulam(alist(
+  MATINGS ~ dpois(lambda),
+  log(lambda) <- a + b*AGE_est[i],
+  AGE ~ dnorm(AGE_est, 20),
+  vector[N]:AGE_est ~ dnorm(35, 10),
+  a ~ dnorm(0,10),
+  b ~ dnorm(0,1)
+), data=dl, start=list(AGE_est=d$AGE))
+precis(m4)
 
