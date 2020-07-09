@@ -203,3 +203,41 @@ m4 <- ulam(alist(
 ), data=dl, start=list(AGE_est=d$AGE))
 precis(m4)
 
+# 15H3
+set.seed(100)
+x <- c(rnorm(10), NA)
+y <- c(rnorm(10,x), 100)
+d <- list(x=x, y=y)
+plot(x,y)
+lm(y ~ x)
+
+m0 <- ulam(alist(
+  y ~ dnorm(mu, sigma),
+  mu <- a + b*x,
+  x ~ dnorm(0,1),
+  a ~ dnorm(0,100),
+  b ~ dnorm(0,100),
+  sigma ~ dexp(1)
+), data=list(x=x[1:10], y=y[1:10]), chains=3, cores=3)
+precis(m0, depth=2)
+
+m1 <- ulam(alist(
+  y ~ dnorm(mu, sigma),
+  mu <- a + b*x,
+  x ~ dnorm(0,1),
+  a ~ dnorm(0,100),
+  b ~ dnorm(0,100),
+  sigma ~ dexp(1)
+), data=d, chains=3, cores=3)
+precis(m1, depth=2)
+traceplot(m1)
+# b and x_impute have two modes corresponding to whether the imputed x 
+# is bigger or smaller than other x. Then the slope is extremely
+# negative or positive.
+
+s1 <- extract.samples(m1)
+str(s1)
+par(mfrow=c(2,2))
+for (i in 1:4) {
+  dens(s1[[i]])
+}
