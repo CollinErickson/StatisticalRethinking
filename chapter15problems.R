@@ -241,3 +241,41 @@ par(mfrow=c(2,2))
 for (i in 1:4) {
   dens(s1[[i]])
 }
+
+
+# 15H4
+library(rethinking)
+data(Primates301)
+d <- Primates301
+cc <- complete.cases( d$brain , d$body )
+B <- d$brain[cc]
+M <- d$body[cc]
+B <- B / max(B)
+M <- M / max(M)
+Bse <- B*0.1
+Mse <- M*0.1
+dat_list <- list( B = B , M = M )
+m15H4 <- ulam(
+  alist(
+    B ~ dlnorm( mu , sigma ),
+    mu <- a + b*log(M),
+    a ~ normal(0,1),
+    b ~ normal(0,1),
+    sigma ~ exponential(1)
+  ) , data=dat_list )
+precis(m15H4)
+
+dat_listb <- list( B = B , M = M , N=length(dat_listb$M), Bse=Bse, Mse=Mse)
+m15H4b <- ulam(
+  alist(
+    vector[N]:B_true ~ dlnorm( mu , sigma ),
+    vector[N]:M_true ~ dnorm(.5, 1),
+    mu <- a + b*log(M_true),
+    B ~ dnorm(B_true, Bse),
+    M ~ dnorm(M_true, Mse),
+    a ~ normal(0,1),
+    b ~ normal(0,1),
+    sigma ~ exponential(1)
+  ) , data=dat_listb , 
+  start=list( M_true=dat_list$M , B_true=dat_list$B ))
+precis(m15H4b)
