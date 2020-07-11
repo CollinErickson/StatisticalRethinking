@@ -287,9 +287,14 @@ precis(m15H4b)
 # 15H7
 
 freqs <- c(18,19,22,NA,NA,19,20,22)
-dl7 <- list(freqs)
+dl7 <- list(freqs=freqs, p0=rep(2,8))
 mh7 <- ulam(alist(
+  # integer:N,
   N <- sum(freqs),
-  freqs ~ ddi
-  simplex[8]: p ~ dirichlet(rep(2,8))
-), data=dl7)
+  freqs ~ multinomial(N, p),
+  # freqs[i] ~ dbinom(160, p),
+  # N ~ dpois(160), # Stan can't do integers
+  N ~ dnorm(160,20),
+  simplex[8]: p ~ dirichlet(p0)
+), data=dl7, start=list(N=160L))
+precis(mh7)
