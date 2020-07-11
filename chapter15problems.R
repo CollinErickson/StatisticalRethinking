@@ -279,3 +279,17 @@ m15H4b <- ulam(
   ) , data=dat_listb , 
   start=list( M_true=dat_list$M , B_true=dat_list$B ))
 precis(m15H4b)
+
+# 15H5
+
+# 15H6
+
+# 15H7
+
+freqs <- c(18,19,22,NA,NA,19,20,22)
+dl7 <- list(freqs)
+mh7 <- ulam(alist(
+  N <- sum(freqs),
+  freqs ~ ddi
+  simplex[8]: p ~ dirichlet(rep(2,8))
+), data=dl7)
