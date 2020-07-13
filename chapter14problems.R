@@ -320,3 +320,29 @@ m2 <- ulam(alist(
 ), data=d %>% dplyr::select(use_contraception, age_centered, district_id, urban), log_lik = T)
 precis(m2)
 
+
+# 14H2
+
+# 14H3
+
+# 14H4
+data("Oxboys")
+d <- Oxboys
+str(d)
+precis(d)
+ggplot(d, aes(age, height)) + facet_wrap(. ~ Subject) + geom_point()
+d$height_norm <- with(d, (height - mean(height)) / sd(height))
+precis(d)
+
+require(MASS)
+m1 <- ulam(alist(
+  height_norm ~ dnorm(mu, sigma),
+  mu <- a + a_ind[Subject] + (b_age + b_age_ind[Subject])*age,
+  c(a_ind, b_age_ind)[Subject] ~ multi_normal(0, Rho, sigma_ind),
+  a ~ dnorm(0, 100),
+  b_age ~ dnorm(0, 1),
+  sigma_ind ~ dexp(1),
+  Rho ~ dlkjcorr(2),
+  sigma ~ dexp(1)
+), data=d, chains=3, cores=3)
+precis(m1, depth=2)
