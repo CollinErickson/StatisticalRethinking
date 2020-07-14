@@ -3,6 +3,7 @@ library(rethinking)
 library(dplyr)
 library(magrittr)
 library(ggplot2)
+library(MASS)
 
 # 14E1
 
@@ -346,3 +347,10 @@ m1 <- ulam(alist(
   sigma ~ dexp(1)
 ), data=d, chains=3, cores=3)
 precis(m1, depth=2)
+
+post <- extract.samples(m1)
+a_ind_means <- colMeans(post$a_ind)
+b_age_ind_means <- colMeans(post$b_age_ind)
+plot(a_ind_means, b_age_ind_means)
+abline(a=0,b=1, col=2)
+
